@@ -68,6 +68,9 @@ def main():
                     annotator.bounding_box(transform(face.bounding_box), fill=0)
                 annotator.update()
 
+                if len(faces)>=1:
+                    camera.capture('face.jpg')
+
                 print('#%05d (%5.2f fps): num_faces=%d, avg_joy_score=%.2f' %
                     (inference.count, inference.rate, len(faces), avg_joy_score(faces)))
 
