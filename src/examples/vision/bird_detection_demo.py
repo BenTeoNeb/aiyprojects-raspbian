@@ -119,17 +119,12 @@ def svg_overlay(faces, frame_size, joy_score):
     width, height = frame_size
     doc = svg.Svg(width=width, height=height)
 
-    for face in faces:
-        x, y, w, h = face.bounding_box
+    for obj in objects:
+        x, y, w, h = obj.bounding_box
         doc.add(svg.Rect(x=int(x), y=int(y), width=int(w), height=int(h), rx=10, ry=10,
-                         fill_opacity=0.3 * face.face_score,
+                         fill_opacity=0.3,
                          style='fill:red;stroke:white;stroke-width:4px'))
 
-        doc.add(svg.Text('Joy: %.2f' % face.joy_score, x=x, y=y - 10,
-                         fill='red', font_size=30))
-
-    doc.add(svg.Text('Faces: %d Avg. joy: %.2f' % (len(faces), joy_score),
-            x=10, y=50, fill='red', font_size=40))
     return str(doc)
 
 
