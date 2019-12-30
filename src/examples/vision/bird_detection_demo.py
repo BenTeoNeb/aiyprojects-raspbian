@@ -115,7 +115,7 @@ def scale_bounding_box(bounding_box, scale_x, scale_y):
     return (x * scale_x, y * scale_y, w * scale_x, h * scale_y)
 
 
-def svg_overlay(faces, frame_size, joy_score):
+def svg_overlay(objects, frame_size, joy_score):
     width, height = frame_size
     doc = svg.Svg(width=width, height=height)
 
