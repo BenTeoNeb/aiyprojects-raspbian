@@ -34,6 +34,7 @@ from aiy.leds import Color, Leds, Pattern, PrivacyLed
 from aiy.toneplayer import TonePlayer
 from aiy.vision.inference import CameraInference
 from aiy.vision.models import face_detection
+from aiy.vision.models import object_detection
 from aiy.vision.streaming.server import StreamingServer
 from aiy.vision.streaming import svg
 
@@ -67,10 +68,10 @@ def stopwatch(message):
 
 def run_inference(num_frames, on_loaded):
     """Yields (faces, (frame_width, frame_height)) tuples."""
-    with CameraInference(face_detection.model()) as inference:
+    with CameraInference(object_detection.model()) as inference:
         on_loaded()
         for result in inference.run(num_frames):
-            yield face_detection.get_faces(result), (result.width, result.height)
+            yield object_detection.get_objects(result), (result.width, result.height)
 
 
 def threshold_detector(low_threshold, high_threshold):
@@ -240,8 +241,8 @@ class Photographer(Service):
                 del draw
                 image.save(filename)
 
-    def update_faces(self, faces):
-        self.submit(faces)
+    def update_objects(self, objects):
+        self.submit(objects)
 
     def shoot(self, camera):
         self.submit(camera)
@@ -267,7 +268,7 @@ class Animator(Service):
         self.submit(joy_score)
 
 
-def joy_detector(num_frames, preview_alpha, image_format, image_folder,
+def bird_detector(num_frames, preview_alpha, image_format, image_folder,
                  enable_streaming, streaming_bitrate, mdns_name):
     done = threading.Event()
     def stop():
@@ -310,25 +311,11 @@ def joy_detector(num_frames, preview_alpha, image_format, image_folder,
 
         board.button.when_pressed = take_photo
 
-        joy_moving_average = moving_average(10)
-        joy_moving_average.send(None)  # Initialize.
-        joy_threshold_detector = threshold_detector(JOY_SCORE_LOW, JOY_SCORE_HIGH)
-        joy_threshold_detector.send(None)  # Initialize.
-        for faces, frame_size in run_inference(num_frames, model_loaded):
-            photographer.update_faces((faces, frame_size))
-            joy_score = joy_moving_average.send(average_joy_score(faces))
-            animator.update_joy_score(joy_score)
-            event = joy_threshold_detector.send(joy_score)
-            if event == 'high':
-                logger.info('High joy detected.')
-                player.play(JOY_SOUND)
-                take_photo()
-            elif event == 'low':
-                logger.info('Low joy detected.')
-                player.play(SAD_SOUND)
+        for objects, frame_size in run_inference(num_frames, model_loaded):
+            photographer.update_objects((objects, frame_size))
 
             if server:
-                server.send_overlay(svg_overlay(faces, frame_size, joy_score))
+                server.send_overlay(svg_overlay(objects, frame_size, 0))
 
             if done.is_set():
                 break
@@ -364,12 +351,12 @@ def main():
     args = parser.parse_args()
 
     try:
-        joy_detector(args.num_frames, args.preview_alpha, args.image_format, args.image_folder,
+        bird_detector(args.num_frames, args.preview_alpha, args.image_format, args.image_folder,
                      args.enable_streaming, args.streaming_bitrate, args.mdns_name)
     except KeyboardInterrupt:
         pass
     except Exception:
-        logger.exception('Exception while running joy demo.')
+        logger.exception('Exception while running bird detector.')
         if args.blink_on_error:
             with Leds() as leds:
                 leds.pattern = Pattern.blink(100)  # 10 Hz
