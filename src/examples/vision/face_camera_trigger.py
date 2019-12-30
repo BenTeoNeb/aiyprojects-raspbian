@@ -30,6 +30,7 @@ def main():
         with CameraInference(face_detection.model()) as inference:
             for result in inference.run():
                 if len(face_detection.get_faces(result)) >= 1:
+                    print("I see you")
                     camera.capture('faces.jpg')
                     break
 
