@@ -125,6 +125,12 @@ def svg_overlay(objects, frame_size, joy_score):
                          fill_opacity=0.3,
                          style='fill:red;stroke:white;stroke-width:4px'))
 
+        doc.add(svg.Text('Class: %.2f' % obj.kind, x=x, y=y - 10,
+                         fill='red', font_size=30))
+
+    doc.add(svg.Text('Objects: %d ' % len(objects),
+            x=10, y=50, fill='red', font_size=40))
+
     return str(doc)
 
 
@@ -309,7 +315,6 @@ def bird_detector(num_frames, preview_alpha, image_format, image_folder,
         for objects, frame_size in run_inference(num_frames, model_loaded):
             photographer.update_objects((objects, frame_size))
 
-            logger.info('Object(s) detected')
             for i, obj in enumerate(objects):
                 logger.info(' > Object #%d: %s' % (i, obj))
 
