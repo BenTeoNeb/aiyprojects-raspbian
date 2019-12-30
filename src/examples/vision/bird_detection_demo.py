@@ -309,6 +309,10 @@ def bird_detector(num_frames, preview_alpha, image_format, image_folder,
         for objects, frame_size in run_inference(num_frames, model_loaded):
             photographer.update_objects((objects, frame_size))
 
+            logger.info('Object(s) detected')
+            for i, obj in enumerate(objects):
+                logger.info(' > Object #%d: %s' % (i, obj))
+
             if server:
                 server.send_overlay(svg_overlay(objects, frame_size, 0))
 
